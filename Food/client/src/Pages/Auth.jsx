@@ -6,10 +6,14 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
 
     if (isLogin) {
       const { error } = await supabase.auth.signInWithPassword({
@@ -17,7 +21,9 @@ const Auth = () => {
         password,
       });
       if (error) {
-        alert(error.message);
+        setErrorMessage(error.message);
+      } else {
+        setSuccessMessage("Signed in successfully!");
       }
     } else {
       const { error } = await supabase.auth.signUp({
@@ -25,9 +31,9 @@ const Auth = () => {
         password,
       });
       if (error) {
-        alert(error.message);
+        setErrorMessage(error.message);
       } else {
-        alert("Check your email for the confirmation link! (Check spam if needed)");
+        setSuccessMessage("Check your email for the confirmation link! (Check spam if needed)");
       }
     }
     setLoading(false);
@@ -42,9 +48,21 @@ const Auth = () => {
         <h1 className="text-4xl font-black mb-2 text-center bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-transparent">
           {isLogin ? 'Welcome Back' : 'Create Account'}
         </h1>
-        <p className="text-zinc-400 text-center mb-8 font-medium">
+        <p className="text-zinc-400 text-center mb-6 font-medium">
           {isLogin ? 'Sign in to access your culinary world.' : 'Join to explore the finest dishes.'}
         </p>
+
+        {errorMessage && (
+          <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-sm font-semibold text-center shadow-inner">
+            {errorMessage}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-sm font-semibold text-center shadow-inner">
+            {successMessage}
+          </div>
+        )}
 
         <form onSubmit={handleAuth} className="space-y-4">
           <div>
