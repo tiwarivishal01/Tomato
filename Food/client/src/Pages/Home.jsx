@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '../Supabase';
 
 const SearchIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
@@ -44,6 +45,39 @@ const Home = () => {
   };
 
   const cartTotalQuantity = Object.values(cartItems).reduce((sum, q) => sum + q, 0);
+
+  const handleCheckout = async () => {
+    try {
+      const checkoutItems = [];
+      for (const item in cartItems) {
+        if (cartItems[item] > 0) {
+          const food = food_list.find(f => f._id === item);
+          if (food) {
+            checkoutItems.push({
+              name: food.name,
+              price: food.price,
+              quantity: cartItems[item]
+            });
+          }
+        }
+      }
+
+      const response = await fetch("http://localhost:4000/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: checkoutItems })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        window.location.replace(data.session_url);
+      } else {
+        alert("Checkout Error: " + data.message);
+      }
+    } catch (error) {
+      alert("Error: Backend is not running on port 4000. Please start the backend server.");
+    }
+  };
 
   const getCartTotalAmount = () => {
     let total = 0;
@@ -119,8 +153,8 @@ const Home = () => {
                   <span className="text-zinc-400 font-medium text-lg">Total Amount</span>
                   <span className="text-4xl font-black text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">₹{getCartTotalAmount()}</span>
                 </div>
-                <button className="w-full bg-emerald-500 text-black font-extrabold py-4 rounded-xl text-lg hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-95">
-                  Proceed to Checkout
+                <button onClick={handleCheckout} className="w-full bg-emerald-500 text-black font-extrabold py-4 rounded-xl text-lg hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-95">
+                  Proceed to Checkout + Delivery Fee
                 </button>
               </div>
             )}
@@ -131,8 +165,8 @@ const Home = () => {
       {/* Floating Header Icons */}
       <div className="absolute top-0 left-0 w-full px-6 py-6 flex justify-between items-start pointer-events-none z-[40]">
         
-        {/* Left Side Icon (Profile) */}
-        <button className="text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors p-3.5 rounded-full pointer-events-auto bg-zinc-900/50 backdrop-blur-md border border-emerald-500/20 group shadow-lg">
+        {/* Left Side Icon (Profile / Logout) */}
+        <button onClick={() => supabase.auth.signOut()} className="text-emerald-500 hover:text-rose-500 hover:bg-rose-500/10 title-['Logout'] transition-colors p-3.5 rounded-full pointer-events-auto bg-zinc-900/50 backdrop-blur-md border border-emerald-500/20 group shadow-lg">
           <ProfileIcon />
         </button>
         
